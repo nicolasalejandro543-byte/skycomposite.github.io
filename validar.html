@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sky Composite - Verificacion de Documento</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a5f2a 0%, #2596be 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a5f2a 0%, #27ae60 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .header .company {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .status {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status.valid {
+            background: #e8f5e9;
+        }
+
+        .status.invalid {
+            background: #ffebee;
+        }
+
+        .status-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .status.valid .status-icon {
+            color: #27ae60;
+        }
+
+        .status.invalid .status-icon {
+            color: #c0392b;
+        }
+
+        .status-text {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .status.valid .status-text {
+            color: #1a5f2a;
+        }
+
+        .status.invalid .status-text {
+            color: #c0392b;
+        }
+
+        .codigo {
+            background: #f5f5f5;
+            padding: 15px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #2596be;
+            letter-spacing: 2px;
+        }
+
+        .content {
+            padding: 25px;
+        }
+
+        .info-group {
+            margin-bottom: 20px;
+        }
+
+        .info-label {
+            font-size: 0.8em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .validadores {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .validadores h3 {
+            color: #1a5f2a;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        .validador {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .validador:last-child {
+            border-bottom: none;
+        }
+
+        .validador-icon {
+            width: 35px;
+            height: 35px;
+            background: #27ae60;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 12px;
+            font-size: 1.2em;
+        }
+
+        .validador-info {
+            flex: 1;
+        }
+
+        .validador-nombre {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .validador-cargo {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 15px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .error-container {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .error-icon {
+            font-size: 4em;
+            color: #c0392b;
+            margin-bottom: 20px;
+        }
+
+        .error-text {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.2em;
+            }
+
+            .codigo {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <!-- Content will be injected by JavaScript -->
+    </div>
+
+    <script>
+        function decodeValidation() {
+            const container = document.getElementById('container');
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('d');
+
+            if (!dataParam) {
+                showError('No se encontraron datos de validacion en el enlace.');
+                return;
+            }
+
+            try {
+                // Decode Base64
+                const jsonStr = atob(dataParam.replace(/-/g, '+').replace(/_/g, '/'));
+                const data = JSON.parse(jsonStr);
+
+                // Build the validation display
+                let validadoresHTML = '';
+                if (data.validadores && data.validadores.length > 0) {
+                    data.validadores.forEach((v, i) => {
+                        validadoresHTML += `
+                            <div class="validador">
+                                <div class="validador-icon">&#10003;</div>
+                                <div class="validador-info">
+                                    <div class="validador-nombre">${escapeHtml(v.nombre)}</div>
+                                    <div class="validador-cargo">${escapeHtml(v.cargo)}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                container.innerHTML = `
+                    <div class="header">
+                        <h1>SKY COMPOSITE</h1>
+                        <div class="company">Sistema de Verificacion de Documentos</div>
+                    </div>
+
+                    <div class="status valid">
+                        <div class="status-icon">&#10003;</div>
+                        <div class="status-text">DOCUMENTO VALIDADO</div>
+                    </div>
+
+                    <div class="codigo">${escapeHtml(data.codigo)}</div>
+
+                    <div class="content">
+                        <div class="info-group">
+                            <div class="info-label">Proveedor</div>
+                            <div class="info-value">${escapeHtml(data.proveedor)}</div>
+                        </div>
+
+                        <div class="info-group">
+                            <div class="info-label">Guia Forestal</div>
+                            <div class="info-value">${escapeHtml(data.guia || 'N/A')}</div>
+                        </div>
+
+                        <div class="info-group">
+                            <div class="info-label">Total BFT</div>
+                            <div class="info-value">${data.bft ? data.bft.toLocaleString() : 'N/A'} BFT</div>
+                        </div>
+
+                        <div class="info-group">
+                            <div class="info-label">Fecha de Validacion</div>
+                            <div class="info-value">${escapeHtml(data.fecha)}</div>
+                        </div>
+
+                        <div class="validadores">
+                            <h3>&#128100; Validado por:</h3>
+                            ${validadoresHTML}
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        Este documento ha sido verificado digitalmente.<br>
+                        Sky Composite - Sistema de Recepcion de Madera
+                    </div>
+                `;
+
+            } catch (e) {
+                console.error('Error decoding:', e);
+                showError('Error al decodificar los datos. El codigo QR puede estar danado.');
+            }
+        }
+
+        function showError(message) {
+            const container = document.getElementById('container');
+            container.innerHTML = `
+                <div class="header">
+                    <h1>SKY COMPOSITE</h1>
+                    <div class="company">Sistema de Verificacion de Documentos</div>
+                </div>
+
+                <div class="status invalid">
+                    <div class="status-icon">&#10007;</div>
+                    <div class="status-text">ERROR DE VERIFICACION</div>
+                </div>
+
+                <div class="error-container">
+                    <div class="error-text">${message}</div>
+                </div>
+
+                <div class="footer">
+                    Sky Composite - Sistema de Recepcion de Madera
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Run on page load
+        decodeValidation();
+    </script>
+</body>
+</html>
